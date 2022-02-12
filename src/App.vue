@@ -1,16 +1,25 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <hr />
+  <!-- <select>
+    <option>湘南台</option>
+    <option>目黒区</option></select
+  ><br /> -->
+
   今日のごみ
-  <input type="text" :value="todayDate" />
+  <input type="date" v-model="todayDate" />
   <input type="text" :value="todayGomi" /><br />
   明日のごみ
-  <input type="text" :value="tomorrowDate" />
+  <input type="date" readonly :value="tomorrowDate" />
   <input type="text" :value="tomorrowGomi" /><br />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+
+function dateToString(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
 
 export default defineComponent({
   name: "App",
@@ -23,34 +32,32 @@ export default defineComponent({
       tomorrowGomi: "",
     };
   },
-
   mounted: function () {
-    this.fetchGomi();
-    this.getToday();
-    this.getTomorrow();
+    this.todayDate = dateToString(new Date());
   },
-
-  methods: {
-    dateToString(date: Date): string {
-      const weekOfDay = ["日", "月", "火", "水", "木", "金", "土"];
-      const mon = date.getMonth() + 1;
-      const dat = date.getDate();
-      const day = date.getDay();
-      const week = weekOfDay[day];
-      return mon + "/" + dat + " (" + week + ")";
+  watch: {
+    todayDate: function (date: string): void {
+      console.log(date);
+      this.todayDate = date;
+      this.setTomorrow();
+      this.fetchGomi();
     },
-    
+  },
+  methods: {
     async fetchGomi() {
-      const response = await fetch('./gomi.json')
+      const response = await fetch("./gomi.json");
       const gomidata = await response.json();
-      const date = new Date();
-      const shonandai = gomidata['Shonandai'];
-      const gomi = this.isFirstWeek(date) ? shonandai.gomiWeek1 : shonandai.gomiWeek2;
+      const date = new Date(this.todayDate);
+      const shonandai = gomidata["Shonandai"];
+      const gomi = this.isFirstWeek(date)
+        ? shonandai.gomiWeek1
+        : shonandai.gomiWeek2;
       this.todayGomi = gomi[date.getDay()];
       date.setDate(date.getDate() + 1);
-      const gomiTomorrow = this.isFirstWeek(date) ? shonandai.gomiWeek1 : shonandai.gomiWeek2;
+      const gomiTomorrow = this.isFirstWeek(date)
+        ? shonandai.gomiWeek1
+        : shonandai.gomiWeek2;
       this.tomorrowGomi = gomiTomorrow[date.getDay()];
-
     },
 
     isFirstWeek(date: Date) {
@@ -61,17 +68,11 @@ export default defineComponent({
       return Math.floor(time / weekTime) % 2 === 0;
     },
 
-    getToday: function () {
-      const date = new Date();
-      this.todayDate = this.dateToString(date);
-      console.log(this.todayDate);
-    },
-
-    getTomorrow: function () {
-      const tomorrow = new Date();
+    setTomorrow: function () {
+      const tomorrow = new Date(this.todayDate);
       // https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate とのことなので以下で OK
       tomorrow.setDate(tomorrow.getDate() + 1);
-      this.tomorrowDate = this.dateToString(tomorrow);
+      this.tomorrowDate = dateToString(tomorrow);
     },
   },
 });
