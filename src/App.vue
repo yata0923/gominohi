@@ -1,11 +1,6 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png" />
   <hr />
-  <!-- <select>
-    <option>湘南台</option>
-    <option>目黒区</option></select
-  ><br /> -->
-
   今日のごみ
   <input type="date" v-model="todayDate" />
   <input type="text" :value="todayGomi" /><br />
@@ -18,7 +13,14 @@
 import { defineComponent } from "vue";
 
 function dateToString(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  // return date.format('yyyy-mm-dd'); をしたい
+  const zeroPadding = (s: number) => "-" + ("0" + s).slice(-2);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dateString = year + zeroPadding(month) + zeroPadding(day);
+  console.log(dateString);
+  return dateString;
 }
 
 export default defineComponent({
@@ -37,7 +39,6 @@ export default defineComponent({
   },
   watch: {
     todayDate: function (date: string): void {
-      console.log(date);
       this.todayDate = date;
       this.setTomorrow();
       this.fetchGomi();
